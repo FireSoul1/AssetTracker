@@ -1,0 +1,72 @@
+<html ng-app="App">
+<head>
+    <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.4.5/angular.min.js"></script>
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css">
+    <style>
+        .container {
+            width: 50%;
+        }
+        h3 {
+            border-bottom: 1px solid #ccc;
+        }
+    </style>
+</head>
+<body>
+    <div class="container" ng-controller="AppController">
+        <!-- Modal -->
+        <div ng-init="showModal=false">
+            <button class="btn btn-primary btn-lg" ng-click="showModal = !showModal">
+                Launch demo modal
+            </button>
+            
+            
+            <div class="modal fade in" aria-hidden="false" style="display: block" ng-show="showModal">  
+                <div class="modal-dialog">    
+                    <!-- Modal content-->
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" ng-click="showModal=false">&times;</button>
+                            <h4 class="modal-title">Modal Header</h4>
+                        </div>
+                        <div class="modal-body">
+                                <h12 ng-repeat="x in devices">
+                                    {{x}}
+                                    <br>
+                                </h12>
+                        </div>
+                        <div class="modal-footer">        
+                            <button type="button" class="btn btn-primary" ng-click="showModal=false">Exit</button>     
+                        </div>    
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <script>
+            var app = angular.module('App', []);
+            app.controller('AppController', function($scope, $http) {
+                $scope.time = "unknown...";
+                $scope.showDiv = false;
+                $scope.user = "None"
+                $http.get('/api/'+$scope.user+'/get_devices').then(function(response) {
+                    $scope.devices = response.data.devices;
+                });	
+                
+                //login User
+                $scope.login_user = function() {
+                    $http.get('/api/login/'+user).then(function(response) {
+                        $scope.devices = response.data.username;
+                        $log.log("this is the shit")
+                    });			    
+                }
+                //get devices for a User
+                $scope.get_devices = function() {
+                    		    
+                }
+                //test out the endpoint
+                
+            });
+        </script>
+    </body>
+    </html>
