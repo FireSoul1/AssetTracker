@@ -25,4 +25,4 @@ class User:
         return self.id
 
     def __repr__(self):
-        return '<User {0}>'.format(self.email)
+        return '<User {0} {1} {2}>'.format(self.email, self.password, self.registered_on)
