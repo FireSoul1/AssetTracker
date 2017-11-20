@@ -3,7 +3,7 @@
  */
 
 #include "tracker.h" 
-
+#define TCP_00 49908
 
 char * serverLocation = "128.10.3.70";
 char responseBuffer[BUFFER_SIZE]; //increase size if we need it  
@@ -45,19 +45,19 @@ int main() {
     //Create socket information, Internet, Port, IP. 
     bzero((char *) &servAddr, sizeof(servAddr));
     servAddr.sin_family = AF_INET; 
-    servAddr.sin_port = htons(SERVER_PORT);
-    servAddr.sin_addr.s_addr = inet_addr(serverLocation);
+    servAddr.sin_port = htons(TCP_00);
+    //change back to serverLocation, rn this is xinu00
+    servAddr.sin_addr.s_addr = inet_addr("128.10.3.50");
 
     //Connect using our actual socket, master_fd, given the socket information, servAddr. 
-    if (connect(master_fd, (struct sockaddr*)&servAddr, sizeof(serAddr)) < 0) {
+    if (connect(master_fd, (struct sockaddr*)&servAddr, sizeof(servAddr)) < 0) {
         printf("RIP no connection\n"); 
         exit(1);
     }
 
-    struct p_header * header = (struct p_header *)buffer; 
+    struct p_header * header = (struct p_header *)responseBuffer; 
     header->resptype = REGISTER;
     header->isDevice = 1;
-    header->deviceid = 0;
     header->dash = '-'; //so we know end of header. 
     memcpy(header->name, "Guna#1", strlen("Guna#1")); 
 
@@ -67,7 +67,8 @@ int main() {
     while (1) {
         //wait for cmd
       //  printf("reading...\n"); 
-        numRead = read(master_fd, responseBuffer, BUFFER_SIZE);
+        printf("reading?\n"); 
+        numRead = accept(master_fd, responseBuffer, BUFFER_SIZE);
         //printf("stuff %s\n", responseBuffer);  
         //make thread 
         
