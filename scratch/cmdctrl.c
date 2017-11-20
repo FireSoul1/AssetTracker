@@ -8,6 +8,9 @@
 #include <stdlib.h>
 #include <netdb.h>
 #include <string.h>
+#include <fcntl.h>           
+#include <sys/stat.h>       
+#include <semaphore.h>
 
 #define WAIT_COUNT 20
 #define REG 'R' 
@@ -15,12 +18,15 @@
 #define ACC 'A' 
 #define DEV 'D' 
 #define SERV 'S' 
+#define GET 'G' 
+#define OURSEM "/goteam" 
 
 int masterSocket = -1, clientSocket = -1, status = -1; 
 struct sockaddr_in ourInfo; 
 char buffer[512]; 
-int numConn = 0; 
-
+int numConn = 0;
+int devid = -1; 
+sem_t * sem = NULL; 
 /**
  *
  * Key for client company here 
@@ -34,7 +40,9 @@ int numConn = 0;
  * 
  *
  */
-
+// i wana map more into shm, like recently reg procs.  
+//
+//
 //we can always just make this bigger. 
 struct msg {
 	char atype;     /*  Either is access or device, ooooor server                         */ 
@@ -50,8 +58,8 @@ void setUp() {
 	ourInfo.sin_addr.s_addr = htons(INADDR_ANY);
 	ourInfo.sin_port = htons(8042);
 
-	//map unnamed sem here 
-
+	sem = sem_open(OURSEM, O_CREAT, 0644, 1); 
+     
 	status = masterSocket = socket(PF_INET, SOCK_STREAM, 0);
 	int setSockopt = 1;    
 	status = setsockopt(masterSocket, SOL_SOCKET, SO_REUSEADDR, &setSockopt, sizeof(int));
@@ -62,6 +70,7 @@ void setUp() {
 
 
 }
+
 // key signing here 
 void generateChallenge(char * data, char * ans) {
 	char * echo = "Echo!!!!\0"; 
@@ -73,6 +82,15 @@ void generateChallenge(char * data, char * ans) {
 
 
 }
+void activateDevice(struct msg * myMsg) {
+    char c = myMsg->data[0];
+    devid = c - '0';  
+    printf("Activing device %d\n", devid); 
+    //send to firebase
+    //TODO  pushDB
+
+}
+
 int challengeDevice() {
 	printf("In challenge\n");
 	struct msg myMsg; 
@@ -97,37 +115,66 @@ int challengeDevice() {
 	int isReg = strcmp(ans, response->data) == 0; 
 	printf("strcmp(%s, %s) == %d", ans, response->data, strcmp(ans, response->data)); 
 	//maybe another msg sending saying okay
-	//then recv details of device. 
 
+    //then recv details of device. 
+    if (isReg) {
+        strcpy(myMsg.data, "OK\0"); 
+        send(clientSocket, (char*)&myMsg, sizeof(myMsg), 0); 
+        recv(clientSocket, buffer, sizeof(buffer) , 0);
+        printf("Sent ok, recieved reply %s\n", buffer); 
+        activateDevice((struct msg *)buffer); 
+    }
+    else {
+        printf("Dont think we should b here rn\n"); 
+        strcpy(myMsg.data, "NO\0"); 
+        send(clientSocket, (char*)&myMsg, sizeof(myMsg), 0); 
+        close(clientSocket); 
+        exit(1); 
+    }
 	numConn += isReg;  
 	return isReg; 
 
 }
-//only devices for now. 
+
+struct msg * parseDB() {
+    if (devid == -1) {
+        printf("Woah we messed up\n"); 
+    }
+    struct msg * temp = (struct msg*)malloc(sizeof(struct msg));
+    temp->atype = SERV;
+    //should have other headers here rn. 
+    temp->rtype = CHAL;
+    //TODO poll DB here. 
+    //myMsg->data = getDB()
+    //for now just say NA. and repeat poll.
+    strcpy(temp->data, "WAIT\0"); 
+    return temp; 
+}
+
+//only devices for now.
+//should be a better way, probably modify protocol a bit
+//
+
 void handleConnection() {
-	status = recv(clientSocket, buffer, sizeof(buffer), 0); 
+	status = recv(clientSocket, buffer, sizeof(buffer), 0);
 	printf("Buffer is %s\n", buffer);
 	struct msg * myMsg = (struct msg *)buffer;
 	if (myMsg->rtype == REG) {
 		printf("Reg attempt, numConn = %d\n", numConn); 
 		int isReg = challengeDevice();
-		printf("Reg finished, numConn = %d\n", numConn); 
-		if (isReg == 0) {
-			//maybe send msg saying failure 
-			//kill conn
-			//close(ourSocket);
-			close(clientSocket); 
-			exit(1); 
-			//exit 
-		}
-		//temp
-		printf("Reg success!\n"); 
-		close(clientSocket);
-		exit(1);
-		//if actually registered place in db. and go on. 
-	}
+		printf("Reg finished, numConn = %d\n", numConn); 	
+    }
+    printf("Beginning poll session\n"); 
+    while (1) {
+        recv(clientSocket, buffer, sizeof(buffer), 0);
+        printf("Recieved %s\n", buffer); 
+        //have different funcs for what u recv ofc, just simple for now. ask/wait
+        struct msg * response = parseDB();
+        printf("Sending %s\n", response->data); 
+        send(clientSocket, (char*)response, sizeof(struct msg), 0);
+        free(response);  
 
-	//challengeDevice();  
+    } 
 }
 
 void start() {
@@ -137,7 +184,8 @@ void start() {
 		printf("Blocking?\n"); 
 		int retval = fork(); 
 		if (retval == 0) {
-			handleConnection(); 
+			sem = sem_open(OURSEM, 0); 
+            handleConnection(); 
 		}
 	}
 }

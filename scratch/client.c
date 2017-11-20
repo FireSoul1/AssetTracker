@@ -24,6 +24,9 @@ int ourSocket;                  /*ourSocket is the fd of the socket we use to ta
 char * server = "128.10.3.70";  /*address of server to connect to*/
 char buffer[512];               /*buffer for requests/response*/
 struct  sockaddr_in servAddr;   /*Server information*/
+char devid = '3';               /*device id assigned by us at compile time*/ 
+char replybuffer[512]; 
+
 
 struct msg {
     char atype;     /*  Either is access or device, ooooor server                         */
@@ -32,28 +35,10 @@ struct msg {
     char data[510]; /*  Remaining data, probably more than we need but w/e                */
 };
 
-char * pollServer() {
-    int n = recv(ourSocket, buffer, sizeof(buffer) , 0); 
-    printf("Buffer is %s\n", buffer); 
-
-}
-
-void * takeAction() {
-    if (strcmp(buffer, "kek") == 0) {
-        printf("kek it is\n"); 
-
-    }
-}
-
-void getCommand() {
-    printf("In getComm\n"); 
-    char * c = pollServer();
-
-    //parseResponse(buffer, c); 
-    //takeAction(buffer); 
-}
 
 
+
+//should do RSA here. 
 void answerChallenge(char * ans, char * data) {
     int i; 
     for (i = 0; i < strlen(data); i++) {
@@ -108,12 +93,19 @@ void registerServer() {
         printf("Sending response %s, %d\n", ans.data, sizeof(struct msg)); 
         //status = send(ourSocket, servMsg, sizeof(struct msg), 0); 
         status = send(ourSocket, &ans, sizeof(struct msg), 0); 
-        break;  
-        //printf("Recv success, buffer is %s\n", buffer); 
-        //close(ourSocket); 
-        //break; 
+        //error hanndle ^^ 
+        status = recv(ourSocket, buffer, sizeof(buffer), 0);
+        printf("servMsg->data = %s\n", servMsg->data); 
+        if (strcmp("OK", servMsg->data) == 0) {
+            printf("Server confirmed reg, sending details.\n");
+            myMsg.data[0] = devid;
+            status = send(ourSocket, (char*)&myMsg, sizeof(struct msg), 0);
+            break; 
+        }
+        else {
+            continue; 
+        }
     }
-
 }
 
 
@@ -122,6 +114,7 @@ int main() {
 
     servAddr.sin_family = AF_INET;
     servAddr.sin_port = htons(8042);
+    //vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv XINU20 
     servAddr.sin_addr.s_addr = inet_addr("128.10.3.70");
 
     //i think move this to reg process. 
@@ -131,9 +124,18 @@ int main() {
 
     //restructure loop and give command to "de register" device from serverside. 
     //this loop should be somewhere else while(reg); 
+    printf("Forever polling\n");  
+    struct msg sayhi; 
+    sayhi.atype = 'D'; 
+    sayhi.rtype = 'G';
+    sayhi.data[0] = 'h';
+    sayhi.data[1] = 'i'; 
     while (1) {
-        //getCommand(buffer);  
-        //sleep(3); 
+        sleep(3);
+        printf("Sending get request\n"); 
+        send(ourSocket, (char*)&sayhi, sizeof(struct msg), 0);
+        recv(ourSocket, buffer, sizeof(buffer), 0); 
+        printf("Recieved %s\n", buffer);  
 
     }
 
