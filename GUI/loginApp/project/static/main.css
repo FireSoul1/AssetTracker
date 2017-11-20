@@ -1,0 +1,21 @@
+button {
+    background-color: cyan;
+    display: block;
+}
+button:hover {
+    background-color: green;
+}
+.device-container {
+    margin-top: 20px;
+    border-style: solid;
+    border-color: gray;
+    border-width: medium;
+    display: inline-block;
+}
+.list-of-devices {
+    margin-bottom: 20px;
+    margin-top: 10px;
+}
+.device {
+    background-color: lightgrey;
+}

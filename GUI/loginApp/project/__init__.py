@@ -2,7 +2,7 @@
 
 
 from flask import Flask, request, jsonify, session
-from project.models import User
+from models import User
 
 
 # config
@@ -53,6 +53,20 @@ def status():
             return jsonify({'status': True})
     else:
         return jsonify({'status': False})
+
+@app.route('/api/show')
+def triggerShow():
+    global show 
+    show = not show
+    return jsonify({'vis': show})
+
+@app.route('/api/login/<user>')
+def get_time(user):
+    return jsonify({'username': user})
+@app.route('/api/<user>/get_devices')
+def get_devices(user):
+    return jsonify({ 'devices': ['dev1','dev2','dev3'] })
+
 
 
 if __name__ == '__main__':
