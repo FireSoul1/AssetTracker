@@ -12,7 +12,8 @@ angular.module('myApp').controller('loginController',
       console.log($scope.loginForm.email);
       console.log($scope.loginForm.password);
       // call login from service
-      AuthService.login($scope.loginForm.email, $scope.loginForm.password)
+      
+        AuthService.login($scope.loginForm.email, $scope.loginForm.password)
         // handle success
         .then(function () {
           $location.path('/');
@@ -79,11 +80,26 @@ angular.module('myApp').controller('registerController',
 
 }]);
 angular.module('myApp').controller('AppController', function($scope, $http) {
+    
+    
+    
+    
+    //create a temporary dictionary
+    var dict = {};
+    dict["dev1"] = 
+        "22 Ross Ade Drive,  West Lafayette, IN 47907"
+    dict["dev2"] = 
+        "305 N University St, West Lafayette, IN 47907"
+    dict["dev3"] = 
+        "2827 US-52 Suite D, West Lafayette, IN 47906"
+
+    
     $scope.time = "unknown...";
     $scope.showDiv = false;
     $scope.user = userTot
+    $scope.gpsloc = "Unknown"
     
-    
+    //get devices for a User 
     $http.get('/api/'+$scope.user+'/get_devices').then(function(response) {
         $scope.devices = response.data.devices;
     });	
@@ -101,16 +117,14 @@ angular.module('myApp').controller('AppController', function($scope, $http) {
             $scope.devices = response.data.devices;
         });			    
     }
-    //get devices for a User
-    $scope.get_devices = function() {
-        $http.get('/api/'+$scope.user+'/get_devices').then(function(response) {
-            $scope.devices = response.data.devices;
-        });		    
-    }
+    //get selected device
     $scope.select_device = function(value) {
         $scope.selectedDevice = value;
         $scope.showDevice = !$scope.showDevice
+        
+        //get GPS location
+        $scope.gpsloc = dict[value];
     }
-    //test out the endpoint
+    
     
 });

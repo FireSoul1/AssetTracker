@@ -1,4 +1,4 @@
-var myApp = angular.module('myApp', ['ngRoute']);
+var myApp = angular.module('myApp', ['ngRoute', 'ngAnimate']);
 
 myApp.config(function ($routeProvider) {
   $routeProvider
@@ -31,6 +31,7 @@ myApp.config(function ($routeProvider) {
     .otherwise({
       redirectTo: '/'
     });
+
 });
 
 myApp.run(function ($rootScope, $location, $route, AuthService) {
