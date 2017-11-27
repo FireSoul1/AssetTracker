@@ -2,6 +2,8 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/time.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <unistd.h>
@@ -23,16 +25,22 @@
 int ourSocket;                  /*ourSocket is the fd of the socket we use to talk*/
 char * server = "128.10.3.70";  /*address of server to connect to*/
 char buffer[512];               /*buffer for requests/response*/
+char pureBuffer[512];           /*for ez picture shenanigans*/  
 struct  sockaddr_in servAddr;   /*Server information*/
 char devid = '3';               /*device id assigned by us at compile time*/ 
 char replybuffer[512]; 
 
 
+
+int regConfirm = 0; 
+
+
+
 struct msg {
     char atype;     /*  Either is access or device, ooooor server                         */
     char rtype;     /*  Request type, register, 'do i have stuff?', accessr do something  */
-    //int size;     /*  Should be fixed size but leave this here until we decide together */      
-    char data[510]; /*  Remaining data, probably more than we need but w/e                */
+    char data[506]; /*  Remaining data, probably more than we need but w/e                */
+    int size;     /*  Should be fixed size but leave this here until we decide together */      
 };
 
 
@@ -84,7 +92,7 @@ void registerServer() {
             sleep(1);
             continue;
         }
-        
+
         struct msg * servMsg = (struct msg *)buffer;
         printf("buffer %s\n", buffer); 
         printf("servMsg->data %s\n", servMsg->data); 
@@ -100,6 +108,7 @@ void registerServer() {
             printf("Server confirmed reg, sending details.\n");
             myMsg.data[0] = devid;
             status = send(ourSocket, (char*)&myMsg, sizeof(struct msg), 0);
+            regConfirm = 1; 
             break; 
         }
         else {
@@ -107,8 +116,6 @@ void registerServer() {
         }
     }
 }
-
-
 int main() {
     //set up sockect connection, we know server at compile time. 
 
@@ -116,28 +123,67 @@ int main() {
     servAddr.sin_port = htons(8042);
     //vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv XINU20 
     servAddr.sin_addr.s_addr = inet_addr("128.10.3.70");
-
     //i think move this to reg process. 
     //ourSocket = socket(AF_INET, SOCK_STREAM, 0);
-
-    registerServer(servAddr); 
-
-    //restructure loop and give command to "de register" device from serverside. 
-    //this loop should be somewhere else while(reg); 
-    printf("Forever polling\n");  
-    struct msg sayhi; 
-    sayhi.atype = 'D'; 
-    sayhi.rtype = 'G';
-    sayhi.data[0] = 'h';
-    sayhi.data[1] = 'i'; 
     while (1) {
-        sleep(3);
-        printf("Sending get request\n"); 
-        send(ourSocket, (char*)&sayhi, sizeof(struct msg), 0);
-        recv(ourSocket, buffer, sizeof(buffer), 0); 
-        printf("Recieved %s\n", buffer);  
+        registerServer(servAddr); 
+        //restructure loop and give command to "de register" device from serverside. 
+        //this loop should be somewhere else while(reg); 
+        printf("Forever polling\n");  
+        struct msg sayhi; 
+        sayhi.atype = 'D'; 
+        sayhi.rtype = 'G';
+        sayhi.data[0] = 'h';
+        sayhi.data[1] = 'i'; 
+        int status; 
+        struct msg * myMsg = (struct msg *)buffer; 
+        //while (1) { 
+        while (regConfirm == 1) {
+            sleep(3);
+            printf("Sending get request %s\n", (char*)&sayhi); 
+            status = send(ourSocket, (char*)&sayhi, sizeof(struct msg), 0);
+            printf("Sent %d\n", status); 
+            status = recv(ourSocket, buffer, sizeof(buffer), 0); 
+            printf("Status is %d\n", status); 
+            printf("Recieved %s\n", buffer);  
+            if (myMsg->rtype == 'X') {
+                regConfirm = 0; 
+                break; 
+            }
+            if (myMsg->rtype == 'U') {
+                printf("Recieved update request, performing IO\n"); 
+                //perofmr i/o
+                //send size of image, and lat/long or w/e 
+                //assume image is cat.jpg 
+                
+                int fd = open("cat.jpg", O_RDONLY);
+                struct stat fileStats; 
+                fstat(fd, &fileStats); 
+                int size = fileStats.st_size; 
+                printf("Size is %d\n", size); 
+                //send file size. 
+                struct msg updatemsg; 
+                updatemsg.rtype = 'U'; 
+                updatemsg.atype = 'D'; 
+                updatemsg.size = size; 
+                send(ourSocket, (char*)&updatemsg, sizeof(struct msg), 0); 
+                //wait for the okay.
+                sleep(3); 
+                //recv(ourSocket, buffer, sizeof(buffer), 0); 
+                int numSent = 0; 
+                int numRead = 0;
+                memset(buffer, 0, sizeof(buffer));  
+                while (numSent < size) {
+                    numRead = read(fd, buffer, sizeof(buffer)); 
+                    printf("Read buffer, it is %s\n", buffer); 
+                    send(ourSocket, buffer, numRead, 0);
+                    numSent += numRead;
+                    printf("Num read was %d\n", numRead); 
+                }
+                printf("Update done\n"); 
+                sleep(3); 
+            }
 
+        }
     }
-
 }
-

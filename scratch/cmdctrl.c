@@ -26,7 +26,15 @@ struct sockaddr_in ourInfo;
 char buffer[512]; 
 int numConn = 0;
 int devid = -1; 
+int locked = 1; 
+
 sem_t * sem = NULL; 
+
+int shares[256]; 
+
+
+
+int debugPic = 1; 
 /**
  *
  * Key for client company here 
@@ -47,13 +55,15 @@ sem_t * sem = NULL;
 struct msg {
 	char atype;     /*  Either is access or device, ooooor server                         */ 
 	char rtype;     /*  Request type, register, 'do i have stuff?', accessr do something  */ 
-	//int size;     /*  Should be fixed size but leave this here until we decide together */      
-	char data[510]; /*  Remaining data, probably more than we need but w/e                */ 
+	char data[506]; /*  Remaining data, probably more than we need but w/e                */ 
+	int size;     /*  Should be fixed size but leave this here until we decide together */      
 };
 
 
 void setUp() {
-	memset(&ourInfo, 0, sizeof(ourInfo));
+	memset(buffer, 0, sizeof(buffer)); 
+    memset(shares, 0, sizeof(shares)); 
+    memset(&ourInfo, 0, sizeof(ourInfo));
 	ourInfo.sin_family = AF_INET;
 	ourInfo.sin_addr.s_addr = htons(INADDR_ANY);
 	ourInfo.sin_port = htons(8042);
@@ -86,6 +96,7 @@ void activateDevice(struct msg * myMsg) {
     char c = myMsg->data[0];
     devid = c - '0';  
     printf("Activing device %d\n", devid); 
+    locked = 0; 
     //send to firebase
     //TODO  pushDB
 
@@ -144,7 +155,8 @@ struct msg * parseDB() {
     temp->atype = SERV;
     //should have other headers here rn. 
     temp->rtype = CHAL;
-    //TODO poll DB here. 
+    //TODO poll DB here.
+    //get shares here
     //myMsg->data = getDB()
     //for now just say NA. and repeat poll.
     strcpy(temp->data, "WAIT\0"); 
@@ -153,7 +165,7 @@ struct msg * parseDB() {
 
 //only devices for now.
 //should be a better way, probably modify protocol a bit
-//
+//FLAG 
 
 void handleConnection() {
 	status = recv(clientSocket, buffer, sizeof(buffer), 0);
@@ -165,14 +177,22 @@ void handleConnection() {
 		printf("Reg finished, numConn = %d\n", numConn); 	
     }
     printf("Beginning poll session\n"); 
-    while (1) {
+   /*
+    struct msg tmp; 
+   tmp.atype = SERV; 
+   tmp.rtype = CHAL; 
+   strcpy(tmp.data, "WAIT\0"); 
+   */
+	while (1) {
         recv(clientSocket, buffer, sizeof(buffer), 0);
         printf("Recieved %s\n", buffer); 
         //have different funcs for what u recv ofc, just simple for now. ask/wait
-        struct msg * response = parseDB();
+        struct msg * response = parseDB(); 
         printf("Sending %s\n", response->data); 
         send(clientSocket, (char*)response, sizeof(struct msg), 0);
-        free(response);  
+        //printf("Sending %s\n", tmp.data); 
+        //send(clientSocket, (char*)&tmp, sizeof(struct msg), 0); 
+	free(response);  
 
     } 
 }
