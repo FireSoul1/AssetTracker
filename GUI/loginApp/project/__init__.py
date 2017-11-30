@@ -1,15 +1,24 @@
 # project/__init__.py
 
 
+import os
 from flask import Flask, request, jsonify, session
 from models import User
 from passlib.hash import pbkdf2_sha256
+from dotenv import load_dotenv
 
 # config
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = "hello"
 filename = 'firebase.txt'
+
+load_dotenv('./.env')
+
+config = os.environ.get("config")
+
+print(config)
+exit()
 
 # routes
 
