@@ -18,7 +18,6 @@ load_dotenv('./.env')
 config = os.environ.get("config")
 
 print(config)
-exit()
 
 # routes
 
