@@ -43,12 +43,13 @@ struct msg {
     int size;     /*  Should be fixed size but leave this here until we decide together */      
 };
 
+/*
 void exec_pycode(const char * code) {
         Py_Initialize();
         PyRun_SimpleString(code);
         Py_Finalize();
 }
-
+*/ 
 
 
 //should do RSA here. 
@@ -160,7 +161,7 @@ int main() {
                 //perofmr i/o
                 //send size of image, and lat/long or w/e 
                 //assume image is cat.jpg 
- 		        exec_pycode("from picamera import PiCamera\ncamera = PiCamera()\ncamera.capture(\'./dev3-new.jpg\')");
+ 		        //exec_pycode("from picamera import PiCamera\ncamera = PiCamera()\ncamera.capture(\'./dev3-new.jpg\')");
 		        sleep(1);                
                 int fd = open("dev3-new.jpg", O_RDONLY);
                 struct stat fileStats; 
