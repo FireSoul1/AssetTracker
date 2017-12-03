@@ -23,7 +23,8 @@
  */
 
 int ourSocket;                  /*ourSocket is the fd of the socket we use to talk*/
-char * server = "128.10.3.70";  /*address of server to connect to*/
+//char * server = "128.10.3.70";  /*address of server to connect to*/
+char * server = "45.55.34.140"; 
 char buffer[512];               /*buffer for requests/response*/
 char pureBuffer[512];           /*for ez picture shenanigans*/  
 struct  sockaddr_in servAddr;   /*Server information*/
@@ -127,8 +128,9 @@ int main() {
     servAddr.sin_family = AF_INET;
     servAddr.sin_port = htons(8042);
     //vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv XINU20 
-    servAddr.sin_addr.s_addr = inet_addr("128.10.3.70");
-    //i think move this to reg process. 
+    //servAddr.sin_addr.s_addr = inet_addr("128.10.3.70");
+    servAddr.sin_addr.s_addr = inet_addr(server); 
+	//i think move this to reg process. 
     //ourSocket = socket(AF_INET, SOCK_STREAM, 0);
     while (1) {
         registerServer(servAddr); 
