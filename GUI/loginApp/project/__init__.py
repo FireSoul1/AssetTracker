@@ -5,22 +5,33 @@ import os
 from flask import Flask, request, jsonify, session
 from models import User
 from passlib.hash import pbkdf2_sha256
-from dotenv import load_dotenv
+from sqlalchemy import Column, ForeignKey, Integer, String
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import relationship
+from sqlalchemy import create_engine
 
 # config
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = "hello"
 filename = 'firebase.txt'
+#firebase
+#firebase = pyrebase.initialize_app(config)
+#current User
+user = None
 
-load_dotenv('./.env')
+#SQLAlchemy
+Base = declarative_base()
+engine = create_engine('mysql+pymysql://n4q1a6kczuonf5l8:jsgsb3vqi3xvty8f@i943okdfa47xqzpy.cbetxkdyhwsb.us-east-1.rds.amazonaws.com:3306/ffj056kwbtsekz5v')
+engine.connect()
+
 
 config = os.environ.get("config")
-
 print(config)
 
 # routes
 
+# routes
 @app.route('/')
 def index():
     return app.send_static_file('index.html')
@@ -33,6 +44,7 @@ def register():
     if checkIfRegistered(user):
         status = 'This user is already registered'
     else:
+        output = conn.execute("CREATE TABLE "+user.email+"(Email varchar(255), Password varchar(255));").fetchall()
         registerUser(user)
         status = 'success'
     return jsonify({'result': status})
@@ -66,7 +78,7 @@ def status():
 
 @app.route('/api/show')
 def triggerShow():
-    global show 
+    global show
     show = not show
     return jsonify({'vis': show})
 
@@ -83,7 +95,7 @@ def hashPassword(password):
 
 def verifyPassword(password, challenge):
     return pbkdf2_sha256.verify(password, challenge)
-    
+
 def checkIfRegistered(user):
     try:
         f = open(filename, 'r+')
@@ -101,7 +113,7 @@ def checkIfRegistered(user):
 
 def registerUser(user):
     f = open(filename, 'a+')
-    f.write('{0}'.format(user))
+    f.write('{0}\n'.format(user))
     f.close()
 
 def validate(user):
@@ -112,7 +124,7 @@ def validate(user):
             arr = l.split(' ')
             return verifyPassword(user.password, arr[2])
     return False
-    
+
 
 if __name__ == '__main__':
     app.debug = True
