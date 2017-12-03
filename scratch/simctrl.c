@@ -31,6 +31,7 @@ struct sockaddr_in ourInfo;
 char buffer[512]; 
 int numConn = 0;
 
+int Secret = 8999; 
 
 
 
@@ -164,6 +165,18 @@ int challengeDevice() {
 	return isReg; 
 
 }
+
+
+
+
+
+//have whatever the format is as parameter. 
+int getUnlock() {
+    //T reconstruction     
+
+
+}
+
 
 struct msg * parseDB() {
 	if (devid == -1) {
