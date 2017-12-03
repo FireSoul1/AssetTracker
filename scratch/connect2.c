@@ -135,6 +135,7 @@ int main(char **args) {
     secret = secret % 11; 
     printf("Reconstructed secret is %d\n", secret); 
 
+    //if works, post 1 to be update. 
 
 
     /*while ( ( row = mysql_fetch_row(result)) != NULL ) {

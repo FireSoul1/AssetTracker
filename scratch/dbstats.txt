@@ -1,7 +1,0 @@
-username:   n4q1a6kczuonf5l8
-Password    jsgsb3vqi3xvty8f
-ip 34.226.240.127
-db name ffj056kwbtsekz5v
-
-
-
