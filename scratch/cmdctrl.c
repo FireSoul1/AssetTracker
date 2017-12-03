@@ -221,7 +221,7 @@ void handleConnection() {
 			int sizeRec = 0; 
 			int numRead = 0; 
 			//first info should have gps cords, figure out format once we get sense hat. 
-			FILE * fp = fopen("/tmp/dev3-new.jpg", "w"); 				
+			FILE * fp = fopen("./dev3-new.jpg", "w"); 				
 			struct msg tmp; 
 			tmp.atype = SERV; 
 			tmp.rtype = UPDATE; 
@@ -239,7 +239,7 @@ void handleConnection() {
 			printf("Done, sizeRec is %d\n", sizeRec); 
 			fclose(fp); 
 		    	char perms[] = "0777";
-    			char temp6[100] = "/tmp/dev3-new.jpg";
+    			char temp6[100] = "./dev3-new.jpg";
    			int i;
     			i = strtol(perms, 0, 8);
    			chmod (temp6,i);
