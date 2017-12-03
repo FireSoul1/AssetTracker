@@ -5,10 +5,10 @@ import os
 from flask import Flask, request, jsonify, session
 from models import User
 from passlib.hash import pbkdf2_sha256
-from sqlalchemy import Column, ForeignKey, Integer, String
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship
-from sqlalchemy import create_engine
+import pyrebase
+
+
+
 
 # config
 
@@ -29,7 +29,6 @@ engine.connect()
 config = os.environ.get("config")
 print(config)
 
-# routes
 
 # routes
 @app.route('/')
