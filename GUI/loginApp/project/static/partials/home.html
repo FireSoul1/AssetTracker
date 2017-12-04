@@ -16,7 +16,7 @@
                     <div class="container">
                         <br>
                         <div ng-repeat="x in devices">
-                            <button type="button" class="btn device" ng-click="select_device(x)">Device {{x}}</button>
+                            <button type="button" class="btn device" ng-disable={{showDevice}} ng-click="select_device(x)">Device {{x}}</button>
                             <br>
                             <br>
                         </div>
@@ -41,21 +41,23 @@
                             <div class="command_lists">
                                 <h3>This device is currently
 
-                                <h4 style="color: lightgreen">live</h4>
-                                <h3>at:</h3>
+                                    <h4 style="color: lightgreen">live</h4>
+                                    <h3>at:</h3>
                                 </h3>
-                                <h4><strong>{{gpsloc}}</strong></h4>
+                                <h4>
+                                    <button ng-click="render_map()"><strong>{{gpsloc[0]}}, {{gpsloc[1]}}</strong></button>
+                                </h4>
                             </div>
 
                             <hr class="green"><!--Picture-->
                             <div class="command_lists">
                                 <h3>This device has a camera. Request picture</h3>
-                            <img  class="thumb" src="/static/zoid1.png"/>
+                                <img  class="thumb" src="/static/zoid1.png"/>
                             </div>
 
                             <hr class="aqua"><!--Command List-->
                             <div class="command_lists">
-                                <p>You have no Commands. Contact your Manager for proper permissions</p>
+                                <button type="button" class="btn btn-primary" ng-click="update_Path()">Take a picture</button>
                             </div>
 
                         </div>

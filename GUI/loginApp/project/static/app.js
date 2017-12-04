@@ -28,6 +28,10 @@ myApp.config(function ($routeProvider) {
       template: '<h1>This is page two!</h1>',
       access: {restricted: false}
     })
+    .when('/map', {
+      template: 'static/partials/map.html',
+      access: {restricted: false}
+    })
     .otherwise({
       redirectTo: '/'
     });

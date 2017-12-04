@@ -95,20 +95,52 @@ def triggerShow():
 def get_time(user):
     return jsonify({'username': user})
 
+@app.route('/<devid>/picture')
+def get_picture(devid):
+    #get the new image in on the system
+    output = conn.execute("SELECT \'"+devid+"\', picpath FROM images;").fetchall()
+    value = output[0][1]
+    return jsonify({'picpath': value})
+@app.route('/<devid>/<user>/active')
+def activate_user(devid, user):
+    #insert the device to table
+    #username = (user.split("@")[0]).replace(".","_")
+    #output = conn.execute("SELECT \'"+username+"\', id FROM users;").fetchall()
+    #value = output[0][1]
+    print("  ACTIVATING USER: "+user+" "+devid)
+    output = conn.execute("SELECT locked FROM active_users WHERE uid="+user+" AND devid="+devid+";").fetchall()
+    for value in output:
+        if(value[0] == 0): #locked
+            print('1')
+            #  conn.execute("DELETE active_users SET locked=1 WHERE uid="+user+" AND devid="+devid+";")
+            conn.execute("UPDATE active_users SET locked=1 WHERE uid="+user+" AND devid="+devid+";")
+        else:
+            print('0')
+            conn.execute("UPDATE active_users SET locked=0 WHERE uid="+user+" AND devid="+devid+";")
+    #if(len(output) == 0):
+        #conn.execute("INSERT INTO active_users (uid,devid,locked) VALUES ("+user+","+devid+", 0);")
+    value = True
+    return jsonify({'status': value})
+
 @app.route('/api/<user>/get_devices')
 def get_devices(user):
+    #get current UserID
+    username = (user.split("@")[0]).replace(".","_")
+    output = conn.execute("SELECT \'"+username+"\', id FROM users;").fetchall()
+    value = output[0][1]
     #get deivce that fit to current User Id
     output = conn.execute("SELECT uid, devid FROM shares;").fetchall()
     devices = []
     for val in output:
-        if(val[0] == userId):
+        if(val[0] == value):
             if( not (val[1] in devices) ):
                 print(val[1], end=" ")
                 devices.append(val[1])
     print(" ")
-    print(str(devices[0])+ ": "+str(len(devices)) )
+
+    #print(str(devices[0])+ ": "+str(len(devices)) )
     #devices = ["wq", "asldfjdfsk", "ojonnvtouvg"]
-    return jsonify( {'devices': devices} )
+    return jsonify( {'devices': devices, 'userid':value} )
 
 @app.route('/<image>', methods=['GET'])
 def retrieve_static_res(image):
@@ -116,9 +148,25 @@ def retrieve_static_res(image):
         return app.send_static_file("/tmp/image/"+image)
     return app.send_static_file('index.html')
 
+#GPS Routes
 @app.route('/<lat>/<lng>', methods=['GET'])
 def showMap(lat, lng):
     return render_template('map.html', lat=lat, lng=lng, key='AIzaSyAK9w5gyw6vMO-ec0Bbt1meRls7O-LjuUE')
+
+@app.route('/<devid>/location', methods=['GET'])
+def get_loc(devid):
+    test = conn.execute("SELECT "+devid+", locationX, locationY FROM device_locs;").fetchall()
+    valX = ""
+    valY = ""
+    for val in test:
+        print(str(val[0])+" "+val[2]+" ")
+        if(str(val[0]) == (""+devid)):
+            print("^^ Selected")
+            valX = val[1]
+            valY = val[2]
+            print("  "+str(valX)+" "+valY+" ")
+            return jsonify({ 'Xloc': valX, 'Yloc': valY })
+    return jsonify({ 'Xloc': valX, 'Yloc': valY })
 
 def hashPassword(password):
     return pbkdf2_sha256.encrypt(password, rounds=200000, salt_size=16)
@@ -138,7 +186,6 @@ def checkIfRegistered(user):
 #Register
 def registerUser(user):
     #add the User to the DB
-
     username = (user.email.split("@")[0]).replace(".","_")
     passsalt = user.password
     print("Adding to Auth")
@@ -146,8 +193,6 @@ def registerUser(user):
     print("Adding to UserId")
     userId = random(1,10000);
     conn.execute("INSERT INTO users (id, name) VALUES (\'"+userId+"\',\'"+username+"\');")
-
-
 def validate(user):
     #TODO check the DB for Username and Password
     userName = (user.email.split("@")[0]).replace(".","_")
