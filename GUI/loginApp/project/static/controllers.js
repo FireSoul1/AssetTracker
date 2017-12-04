@@ -113,6 +113,7 @@ function ($scope, $location, AuthService) {
         $scope.gpsloc = ["Unknown","sadfsdf"]
         $scope.select_path = "/static/zoid1.png"
         $scope.selectedDevice = null;
+        $scope.address = "This is the Address... NOT"
 
         //get devices for a User
 	console.log('scope.user: ' + $scope.user);
@@ -144,6 +145,11 @@ function ($scope, $location, AuthService) {
                 $scope.gpsloc[1] = response.data.Yloc;
                 console.log("GPS Done!")
             });
+            //get the address
+            $http.get('https://maps.googleapis.com/maps/api/geocode/json?latlng='+$scope.gpsloc[0]+','+$scope.gpsloc[1]+
+                '&key=AIzaSyDfV1w9mdqh0WSPSOS1u_8Pa3DSEn2tLAU').then(function(response) {
+                    $scope.address = response.data.formatted_address
+                }
 
             //TODO send Http request to update active user with device Id
             $http.get('/'+value+'/'+$scope.userID+'/active').then(function(response) {
@@ -151,9 +157,9 @@ function ($scope, $location, AuthService) {
             });
         }
         //OPen the map
-        /*$scope.render_map = function() {
+        $scope.render_map = function() {
             $http.get('/'+$scope.gpsloc[0]+'/'+$scope.gpsloc[1]).then(function(response) {
-                $window.open('https://www.google.com', "_blank")
+
             }
-        }*/
+        }
     }]);
