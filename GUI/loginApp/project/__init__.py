@@ -1,17 +1,15 @@
 # project/__init__.py
 import os
 from random import *
-from flask import Flask, request, jsonify, session
+from flask import Flask, request, jsonify, session, render_template
 from models import User
 from passlib.hash import pbkdf2_sha256
-import pyrebase
 from sqlalchemy import inspect, create_engine
 from sqlalchemy.ext.declarative import declarative_base
 
-
 # config
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder='./static')
 app.config['SECRET_KEY'] = "hello"
 filename = 'firebase.txt'
 #firebase
@@ -41,7 +39,6 @@ conn = engine.connect()
 @app.route('/')
 def index():
     return app.send_static_file('index.html')
-
 
 @app.route('/api/register', methods=['POST'])
 def register():
@@ -118,6 +115,11 @@ def retrieve_static_res(image):
     if(len(image.split('.')) > 1 ):
         return app.send_static_file("/tmp/image/"+image)
     return app.send_static_file('index.html')
+
+@app.route('/<lat>/<lng>', methods=['GET'])
+def showMap(lat, lng):
+    return render_template('map.html', lat=lat, lng=lng, key='AIzaSyAK9w5gyw6vMO-ec0Bbt1meRls7O-LjuUE')
+
 def hashPassword(password):
     return pbkdf2_sha256.encrypt(password, rounds=200000, salt_size=16)
 
@@ -165,6 +167,8 @@ def validate(user):
     #         arr = l.split(' ')
     #         return verifyPassword(user.password, arr[2])
     # return False
+
+
 if __name__ == '__main__':
     app.debug = True
     app.run()
