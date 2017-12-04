@@ -117,8 +117,8 @@ def activate_user(devid, user):
         else:
             print('0')
             conn.execute("UPDATE active_users SET locked=0 WHERE uid="+user+" AND devid="+devid+";")
-    #if(len(output) == 0):
-        #conn.execute("INSERT INTO active_users (uid,devid,locked) VALUES ("+user+","+devid+", 0);")
+    if(len(output) == 0):
+        conn.execute("INSERT INTO active_users (uid,devid,locked) VALUES ("+user+","+devid+", 1);")
     value = True
     return jsonify({'status': value})
 
