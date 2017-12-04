@@ -4,7 +4,7 @@ angular.module('myApp').controller('loginController',
 function ($scope, $location, AuthService) {
 
     $scope.login = function () {
-
+	console.log('loggin in')
         // initial values
         $scope.error = false;
         $scope.disabled = true;
@@ -17,8 +17,8 @@ function ($scope, $location, AuthService) {
         .then(function () {
             $location.path('/');
             $scope.disabled = false;
-            $scope.user = $scope.registerForm.email
-            user = $scope.registerForm.email
+            $scope.user = $scope.loginForm.email;
+            user = $scope.loginForm.email;
             $scope.loginForm = {};
         })
         // handle error
@@ -48,7 +48,7 @@ function ($scope, $location, AuthService) {
     };
 
 }]);
-angular.module('myApp').controller('MyCtrl',
+/*angular.module('myApp').controller('MyCtrl',
 ['$scope', '$location', '$$window', 'ngMap'
 function(NgMap){
     var vm = this;
@@ -61,7 +61,7 @@ function(NgMap){
             this.style.display = 'none';
         };
     });
-});
+});*/
 
 angular.module('myApp').controller('registerController',
 ['$scope', '$location', 'AuthService',
@@ -94,7 +94,7 @@ function ($scope, $location, AuthService) {
 
     }]);
     angular.module('myApp').controller('AppController',
-    ['$window',
+    ['$scope', '$http', '$window',
     function($scope, $http, $window) {
         //create a temporary dictionary
         var dict = {};
@@ -115,6 +115,7 @@ function ($scope, $location, AuthService) {
         $scope.selectedDevice = null;
 
         //get devices for a User
+	console.log('scope.user: ' + $scope.user);
         $http.get('/api/'+$scope.user+'/get_devices').then(function(response) {
             $scope.devices = response.data.devices;
             $scope.userID = response.data.userid
@@ -150,9 +151,9 @@ function ($scope, $location, AuthService) {
             });
         }
         //OPen the map
-        $scope.render_map = function() {
+        /*$scope.render_map = function() {
             $http.get('/'+$scope.gpsloc[0]+'/'+$scope.gpsloc[1]).then(function(response) {
                 $window.open('https://www.google.com', "_blank")
             }
-        }
+        }*/
     }]);

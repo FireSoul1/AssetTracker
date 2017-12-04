@@ -31,6 +31,7 @@ angular.module('myApp').factory('AuthService',
       $http.post('/api/login', {email: email, password: password})
         // handle success
         .success(function (data, status) {
+	  console.log('success')
           if(status === 200 && data.result){
             user = true;
             deferred.resolve();
@@ -41,6 +42,7 @@ angular.module('myApp').factory('AuthService',
         })
         // handle error
         .error(function (data) {
+	  console.log('error: ' + data)
           user = false;
           deferred.reject();
         });
@@ -99,9 +101,11 @@ angular.module('myApp').factory('AuthService',
     }
 
     function getUserStatus() {
+      console.log('getting status')
       return $http.get('/api/status')
       // handle success
       .success(function (data) {
+	console.log('success status: ' + data)
         if(data.status){
           user = true;
         } else {
@@ -110,6 +114,7 @@ angular.module('myApp').factory('AuthService',
       })
       // handle error
       .error(function (data) {
+	console.log('stat err data: ' + data)
         user = false;
       });
     }

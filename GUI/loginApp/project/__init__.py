@@ -54,6 +54,7 @@ def register():
 
 @app.route('/api/login', methods=['POST'])
 def login():
+    print('logging in')
     json_data = request.json
     user = User(email=json_data['email'], password=json_data['password'])
     if checkIfRegistered(user) and validate(user):
@@ -68,6 +69,7 @@ def login():
     else:
         status = False;
     user.password = hashPassword(user.password)
+    print('status: ' + str(status))
     return jsonify({'result': status})
 
 
@@ -79,10 +81,13 @@ def logout():
 
 @app.route('/api/status')
 def status():
+    print(request)
     if session.get('logged_in'):
         if session['logged_in']:
+            print('session: True') 
             return jsonify({'status': True})
     else:
+        print('session: False')
         return jsonify({'status': False})
 
 @app.route('/api/show')
@@ -216,4 +221,4 @@ def validate(user):
 
 if __name__ == '__main__':
     app.debug = True
-    app.run()
+    app.run(host='0.0.0.0', port=5000)

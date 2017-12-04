@@ -59,3 +59,11 @@
     opacity: 0;
     background-color: transparent;
 }
+
+#container {
+	height: 90vh;
+}
+
+#map {
+	height: inherit;
+}
