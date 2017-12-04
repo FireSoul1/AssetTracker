@@ -144,22 +144,23 @@ function ($scope, $location, AuthService) {
                 $scope.gpsloc[0] = response.data.Xloc;
                 $scope.gpsloc[1] = response.data.Yloc;
                 console.log("GPS Done!")
+                console.log('hello')
+                //get the address
+                lat = '40.741895';//$scope.gpsloc[0];
+                lng = '-73.989308';//$scope.gpsloc[1];
+                url = 'https://maps.googleapis.com/maps/api/geocode/json?latlng='+lat+','+lng+'&key=AIzaSyDfV1w9mdqh0WSPSOS1u_8Pa3DSEn2tLAU';
+                $http.get(url).then(function(response) {
+                        $scope.address = response.data.formatted_address;
+                        console.log(response.data);
+                        console.log($scope.address);
+                }, function error(_error) {
+                        console.log('error: ' + error);
+                });
             });
-            //get the address
-            $http.get('https://maps.googleapis.com/maps/api/geocode/json?latlng='+$scope.gpsloc[0]+','+$scope.gpsloc[1]+
-                '&key=AIzaSyDfV1w9mdqh0WSPSOS1u_8Pa3DSEn2tLAU').then(function(response) {
-                    $scope.address = response.data.formatted_address
-                }
 
             //TODO send Http request to update active user with device Id
             $http.get('/'+value+'/'+$scope.userID+'/active').then(function(response) {
                 console.log("Done!")
             });
-        }
-        //OPen the map
-        $scope.render_map = function() {
-            $http.get('/'+$scope.gpsloc[0]+'/'+$scope.gpsloc[1]).then(function(response) {
-
-            }
         }
     }]);
