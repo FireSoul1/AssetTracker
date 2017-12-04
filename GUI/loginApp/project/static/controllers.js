@@ -80,10 +80,6 @@ angular.module('myApp').controller('registerController',
 
 }]);
 angular.module('myApp').controller('AppController', function($scope, $http) {
-
-
-
-
     //create a temporary dictionary
     var dict = {};
     dict["dev1"] =
@@ -102,6 +98,7 @@ angular.module('myApp').controller('AppController', function($scope, $http) {
     //get devices for a User
     $http.get('/api/'+$scope.user+'/get_devices').then(function(response) {
         $scope.devices = response.data.devices;
+        $log.log($scope.devices);
     });
     $scope.selectedDevice = null;
 
@@ -126,7 +123,7 @@ angular.module('myApp').controller('AppController', function($scope, $http) {
         $scope.gpsloc = dict[value];
 
         //send Http request to update active user with device Id
-        
+
     }
 
 

@@ -7,7 +7,7 @@
                 <h1>Welcome to HiJack</h1>
                 <h2>Check out your treasures!</h2>
             </div>
-            <div class="gen-container" aria-hidden="false" style="display: block" ng-show="showModal">      
+            <div class="gen-container" aria-hidden="false" style="display: block" ng-show="showModal">
                 <!-- Modal content-->
                 <div>
                     <div>
@@ -16,23 +16,23 @@
                     <div class="container">
                         <br>
                         <div ng-repeat="x in devices">
-                            <button type="button" class="btn device" ng-click="select_device(x)">{{x}}</button>
+                            <button type="button" class="btn device" ng-click="select_device(x)">Device {{x}}</button>
                             <br>
                             <br>
                         </div>
-                    </div>     
+                    </div>
                 </div>
             </div>
         </div>
         <!-- Device Modal -->
         <div class="text-center col-sm-8">
-            <div aria-hidden="false" style="display: block">  
-                <div ng-hide="!showDevice" class="device-container">    
+            <div aria-hidden="false" style="display: block">
+                <div ng-hide="!showDevice" class="device-container">
                     <!-- Modal content-->
                     <div >
                         <div class="modal-header">
                             <button type="button" class="close" data-dismiss="modal" ng-click="showDevice=false">&times;</button>
-                            <h1 class="modal-title">{{selectedDevice}}</h1>
+                            <h1 class="modal-title">Device {{selectedDevice}}</h1>
                             <h5> {{permission}} </h5>
                         </div>
                         <div class="modal-body">
@@ -41,16 +41,16 @@
                             <div class="command_lists">
                                 <h3>This device is currently
 
-                                <h4 style="color: lightgreen">live</h4>   
+                                <h4 style="color: lightgreen">live</h4>
                                 <h3>at:</h3>
-                                </h3>    
-                                <h4><strong>{{gpsloc}}</strong></h4>    
+                                </h3>
+                                <h4><strong>{{gpsloc}}</strong></h4>
                             </div>
 
                             <hr class="green"><!--Picture-->
                             <div class="command_lists">
-                                <h3>{{selectedDevice}} is blind! (no camera)</h3>
-                            <img  class="thumb" src="http://www.clker.com/cliparts/4/4/4/T/k/W/no-camera-allowed-hi.png"/>    
+                                <h3>This device has a camera. Request picture</h3>
+                            <img  class="thumb" src="/static/zoid1.png"/>
                             </div>
 
                             <hr class="aqua"><!--Command List-->
@@ -59,9 +59,9 @@
                             </div>
 
                         </div>
-                        <div class="modal-footer">        
-                            <button type="button" class="btn btn-primary" ng-click="showDevice=false">Exit</button>     
-                        </div>    
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-primary" ng-click="showDevice=false">Exit</button>
+                        </div>
                     </div>
                 </div>
             </div>

@@ -105,13 +105,19 @@ def get_devices(user):
     devices = []
     for val in output:
         if(val[0] == userId):
-            print(val[1], end=" ")
             if( not (val[1] in devices) ):
-                devices.append("Device "+str(val[1]))
+                print(val[1], end=" ")
+                devices.append(val[1])
     print(" ")
-    print(str(userId)+ ": "+str(len(devices)) )
-    return jsonify({'devices':devices})
+    print(str(devices[0])+ ": "+str(len(devices)) )
+    #devices = ["wq", "asldfjdfsk", "ojonnvtouvg"]
+    return jsonify( {'devices': devices} )
 
+@app.route('/<image>', methods=['GET'])
+def retrieve_static_res(image):
+    if(len(image.split('.')) > 1 ):
+        return app.send_static_file("/tmp/image/"+image)
+    return app.send_static_file('index.html')
 def hashPassword(password):
     return pbkdf2_sha256.encrypt(password, rounds=200000, salt_size=16)
 
