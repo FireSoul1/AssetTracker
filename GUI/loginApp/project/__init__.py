@@ -1,26 +1,43 @@
 # project/__init__.py
-
-
 import os
+from random import *
 from flask import Flask, request, jsonify, session
 from models import User
 from passlib.hash import pbkdf2_sha256
-from dotenv import load_dotenv
+import pyrebase
+from sqlalchemy import inspect, create_engine
+from sqlalchemy.ext.declarative import declarative_base
+
 
 # config
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = "hello"
 filename = 'firebase.txt'
+#firebase
+#firebase = pyrebase.initialize_app(config)
+#current User
+user = None
+userId = -100
 
-load_dotenv('./.env')
+#SQLAlchemy
+engine = create_engine('mysql+pymysql://n4q1a6kczuonf5l8:jsgsb3vqi3xvty8f@i943okdfa47xqzpy.cbetxkdyhwsb.us-east-1.rds.amazonaws.com:3306/ffj056kwbtsekz5v')
+conn = engine.connect()
 
-config = os.environ.get("config")
+#Verify that all the Tables have the right columns
+# Base = declarative_base()
+# inspector = inspect(engine)
+# for table_name in inspector.get_table_names():
+#     print("Table: %s" % table_name)
+#     for column in inspector.get_columns(table_name):
+#         print("%s " % column['name'], end=" ")
+#     print("\n")
+# config = os.environ.get("config")
+# print(config)
 
-print(config)
+
 
 # routes
-
 @app.route('/')
 def index():
     return app.send_static_file('index.html')
@@ -31,6 +48,7 @@ def register():
     json_data = request.json
     user = User(email=json_data['email'], password=hashPassword(json_data['password']))
     if checkIfRegistered(user):
+        #print("registered")
         status = 'This user is already registered'
     else:
         registerUser(user)
@@ -44,6 +62,12 @@ def login():
     if checkIfRegistered(user) and validate(user):
         session['logged_in'] = True
         status = True
+        #get the UserId
+        username = (user.email.split("@")[0]).replace(".","_")
+        output = conn.execute("SELECT \'"+username+"\', id FROM users;").fetchall()
+        global userId
+        userId = output[0][1]
+        print("LoginL "+str(userId))
     else:
         status = False;
     user.password = hashPassword(user.password)
@@ -66,7 +90,7 @@ def status():
 
 @app.route('/api/show')
 def triggerShow():
-    global show 
+    global show
     show = not show
     return jsonify({'vis': show})
 
@@ -76,44 +100,65 @@ def get_time(user):
 
 @app.route('/api/<user>/get_devices')
 def get_devices(user):
-    return jsonify({ 'devices': ['dev1','dev2','dev3'] })
+    #get deivce that fit to current User Id
+    output = conn.execute("SELECT uid, devid FROM shares;").fetchall()
+    devices = []
+    for val in output:
+        if(val[0] == userId):
+            print(val[1], end=" ")
+            if( not (val[1] in devices) ):
+                devices.append("Device "+str(val[1]))
+    print(" ")
+    print(str(userId)+ ": "+str(len(devices)) )
+    return jsonify({'devices':devices})
 
 def hashPassword(password):
     return pbkdf2_sha256.encrypt(password, rounds=200000, salt_size=16)
 
 def verifyPassword(password, challenge):
     return pbkdf2_sha256.verify(password, challenge)
-    
+
 def checkIfRegistered(user):
-    try:
-        f = open(filename, 'r+')
-    except:
-        f = open(filename, 'w+')
-        f.close()
-    f = open(filename, 'r+')
-    lines = f.readlines()
-    for l in lines:
-        if user.email in l:
-            f.close()
-            return True
-    f.close()
+    username = (user.email.split("@")[0]).replace(".","_")
+    test = conn.execute("SELECT \'"+username+"\', passwords FROM auth_users;").fetchall()
+    print("Check Auth")
+    #print('[%s]' % ', '.join(map(str, test)))
+    if(len(test) > 0):
+        return True
     return False
 
+#Register
 def registerUser(user):
-    f = open(filename, 'a+')
-    f.write('{0}'.format(user))
-    f.close()
+    #add the User to the DB
+
+    username = (user.email.split("@")[0]).replace(".","_")
+    passsalt = user.password
+    print("Adding to Auth")
+    conn.execute("INSERT INTO auth_users (username,passwords) VALUES ( \'"+username+"\',\'"+passsalt+"\');")
+    print("Adding to UserId")
+    userId = random(1,10000);
+    conn.execute("INSERT INTO users (id, name) VALUES (\'"+userId+"\',\'"+username+"\');")
+
 
 def validate(user):
-    f = open(filename, 'r+')
-    lines = f.readlines()
-    for l in lines:
-        if user.email in l:
-            arr = l.split(' ')
-            return verifyPassword(user.password, arr[2])
-    return False
-    
-
+    #TODO check the DB for Username and Password
+    userName = (user.email.split("@")[0]).replace(".","_")
+    output = conn.execute("SELECT \'"+userName+"\', passwords FROM auth_users;").fetchall()
+    if(len(output) > 0 ): #the user exists
+        test = dict(output)
+        #print(test)
+        #compare passwords
+        password = test[userName]
+        #print("Validating: "+userName+" "+password)
+        return verifyPassword(user.password, password)
+    return False;
+    # f = open(filename, 'r+')
+    # lines = f.readlines()
+    # for l in lines:
+    #     if user.email in l:
+    #         arr = l.split(' ')
+    #         return verifyPassword(user.password, arr[2])
+    # return False
 if __name__ == '__main__':
     app.debug = True
     app.run()
