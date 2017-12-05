@@ -36,32 +36,15 @@ function ($scope, $location, AuthService) {
 angular.module('myApp').controller('logoutController',
 ['$scope', '$location', 'AuthService',
 function ($scope, $location, AuthService) {
-
     $scope.logout = function () {
-
         // call logout from service
         AuthService.logout()
         .then(function () {
             $location.path('/login');
         });
-
     };
-
 }]);
-angular.module('myApp').controller('MyCtrl',
-['$scope', '$location', '$$window', 'ngMap'
-function(NgMap){
-    var vm = this;
-    NgMap.getMap().then(function(map) {
-        vm.showCustomMarker= function(evt) {
-            map.customMarkers.foo.setVisible(true);
-            map.customMarkers.foo.setPosition(this.getPosition());
-        };
-        vm.closeCustomMarker= function(evt) {
-            this.style.display = 'none';
-        };
-    });
-});
+
 
 angular.module('myApp').controller('registerController',
 ['$scope', '$location', 'AuthService',
@@ -94,7 +77,7 @@ function ($scope, $location, AuthService) {
 
     }]);
     angular.module('myApp').controller('AppController',
-    ['$window',
+    ['$scope','$http','$window',
     function($scope, $http, $window) {
         //create a temporary dictionary
         var dict = {};
@@ -149,10 +132,16 @@ function ($scope, $location, AuthService) {
                 console.log("Done!")
             });
         }
-        //OPen the map
+        //Open the map
         $scope.render_map = function() {
             $http.get('/'+$scope.gpsloc[0]+'/'+$scope.gpsloc[1]).then(function(response) {
                 $window.open('https://www.google.com', "_blank")
+            }
+        }
+        //Update the image_src
+        $scope.render_map = function() {
+            $http.get('/'+$scope.image_src+'/picture').then(function(response) {
+                $scope.image_src = response.data.picpath;
             }
         }
     }]);

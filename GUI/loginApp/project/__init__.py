@@ -98,9 +98,10 @@ def get_time(user):
 @app.route('/<devid>/picture')
 def get_picture(devid):
     #get the new image in on the system
-    output = conn.execute("SELECT \'"+devid+"\', picpath FROM images;").fetchall()
-    value = output[0][1]
+    output = conn.execute("SELECT \'"+devid+"\', name, path FROM device;").fetchall()
+    value = output[0][2]
     return jsonify({'picpath': value})
+
 @app.route('/<devid>/<user>/active')
 def activate_user(devid, user):
     #insert the device to table
@@ -142,17 +143,10 @@ def get_devices(user):
     #devices = ["wq", "asldfjdfsk", "ojonnvtouvg"]
     return jsonify( {'devices': devices, 'userid':value} )
 
-@app.route('/<image>', methods=['GET'])
-def retrieve_static_res(image):
-    if(len(image.split('.')) > 1 ):
-        return app.send_static_file("/tmp/image/"+image)
-    return app.send_static_file('index.html')
-
 #GPS Routes
 @app.route('/<lat>/<lng>', methods=['GET'])
 def showMap(lat, lng):
     return render_template('map.html', lat=lat, lng=lng, key='AIzaSyAK9w5gyw6vMO-ec0Bbt1meRls7O-LjuUE')
-
 @app.route('/<devid>/location', methods=['GET'])
 def get_loc(devid):
     test = conn.execute("SELECT "+devid+", locationX, locationY FROM device_locs;").fetchall()
@@ -199,19 +193,11 @@ def validate(user):
     output = conn.execute("SELECT \'"+userName+"\', passwords FROM auth_users;").fetchall()
     if(len(output) > 0 ): #the user exists
         test = dict(output)
-        #print(test)
         #compare passwords
         password = test[userName]
         #print("Validating: "+userName+" "+password)
         return verifyPassword(user.password, password)
     return False;
-    # f = open(filename, 'r+')
-    # lines = f.readlines()
-    # for l in lines:
-    #     if user.email in l:
-    #         arr = l.split(' ')
-    #         return verifyPassword(user.password, arr[2])
-    # return False
 
 
 if __name__ == '__main__':
