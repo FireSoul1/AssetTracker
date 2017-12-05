@@ -1,4 +1,44 @@
-var userTot = "Arnab"
+// Changes XML to JSON
+
+function xmlToJson(xml) {
+    'use strict';
+    // Create the return object
+    var obj = {}, i, j, attribute, item, nodeName, old;
+
+    if (xml.nodeType === 1) { // element
+        // do attributes
+        if (xml.attributes.length > 0) {
+            obj["@attributes"] = {};
+            for (j = 0; j < xml.attributes.length; j = j + 1) {
+                attribute = xml.attributes.item(j);
+                obj["@attributes"][attribute.nodeName] = attribute.nodeValue;
+            }
+        }
+    } else if (xml.nodeType === 3) { // text
+        obj = xml.nodeValue;
+    }
+
+    // do children
+    if (xml.hasChildNodes()) {
+        for (i = 0; i < xml.childNodes.length; i = i + 1) {
+            item = xml.childNodes.item(i);
+            nodeName = item.nodeName;
+            if ((obj[nodeName]) === undefined) {
+                obj[nodeName] = xmlToJson(item);
+            } else {
+                if ((obj[nodeName].push) === undefined) {
+                    old = obj[nodeName];
+                    obj[nodeName] = [];
+                    obj[nodeName].push(old);
+                }
+                obj[nodeName].push(xmlToJson(item));
+            }
+        }
+    }
+    return obj;
+};
+
+
 angular.module('myApp').controller('loginController',
 ['$scope', '$location', 'AuthService',
 function ($scope, $location, AuthService) {
@@ -116,7 +156,7 @@ function ($scope, $location, AuthService) {
         $scope.address = "This is the Address... NOT"
 
         //get devices for a User
-	console.log('scope.user: ' + $scope.user);
+	       console.log('scope.user: ' + $scope.user);
         $http.get('/api/'+$scope.user+'/get_devices').then(function(response) {
             $scope.devices = response.data.devices;
             $scope.userID = response.data.userid
@@ -135,6 +175,7 @@ function ($scope, $location, AuthService) {
                 $scope.devices = response.data.devices;
             });
         }
+
         //get selected device
         $scope.select_device = function(value) {
             $scope.selectedDevice = value;
@@ -146,12 +187,25 @@ function ($scope, $location, AuthService) {
                 console.log("GPS Done!")
                 console.log('hello')
                 //get the address
-                lat = '40.741895';//$scope.gpsloc[0];
-                lng = '-73.989308';//$scope.gpsloc[1];
-                url = 'https://maps.googleapis.com/maps/api/geocode/json?latlng='+lat+','+lng+'&key=AIzaSyDfV1w9mdqh0WSPSOS1u_8Pa3DSEn2tLAU';
+                lat = $scope.gpsloc[0];
+                lng = $scope.gpsloc[1];
+                url = 'http://api.geonames.org/findNearestAddress?lat='+lat+'&lng='+lng+'&username=gkondapa';
                 $http.get(url).then(function(response) {
-                        $scope.address = response.data.formatted_address;
-                        console.log(response.data);
+                        if(response.data != null) {
+                            console.log("Datata "+response.data);
+                            var tmp = response.data+"";
+                            var parser = new DOMParser();
+                            var dom = parser.parseFromString(tmp, "text/xml")
+                            var jsoned = xmlToJson(dom);
+                            console.log("Json: "+JSON.stringify(jsoned));
+                             var start = jsoned.geonames.address
+                             var addr = start.streetNumber['#text']+" "+start.street['#text']+", "+
+                                 start.placename['#text']+", "+start.adminCode1['#text']+", "+
+                                 start.countryCode['#text']+" "+start.postalcode['#text']
+                             $scope.address = addr;
+                        }
+
+
                         console.log($scope.address);
                 }, function error(_error) {
                         console.log('error: ' + error);

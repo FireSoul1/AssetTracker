@@ -29,46 +29,44 @@
             <div aria-hidden="false" style="display: block">
                 <div ng-hide="!showDevice" class="device-container">
                     <!-- Modal content-->
-                    <div >
+                    <div ng-init="address = '350 N University Dr., West Lafayette, IN, 47906'">
                         <div class="modal-header">
                             <button type="button" class="close" data-dismiss="modal" ng-click="showDevice=false">&times;</button>
                             <h1 class="modal-title">Device {{selectedDevice}}</h1>
-                            <h5> {{permission}} </h5>
                         </div>
                         <div class="modal-body">
-
-                                <!--GPS Location-->
-                                <div class="command_lists">
-                                    <h3>This device is currently
-
-                                        <h4 style="color: lightgreen">live</h4>
-                                        <h3>at:</h3>
-                                    </h3>
-                                    <h3><strong>{{address}} </strong></h3>
-<!---                                    <iframe width="600" height="450" frameborder="0" style="border:0"
-                                    src="https://www.google.com/maps/embed/v1/place?q={{gpsloc[0]}}%2C{{gpsloc[1]}}&key=AIzaSyALv4ybg4f1tID8FpBJp_DAGNirGVfOkQs" allowfullscreen></iframe>
--->                            </div>
-
-                            <hr class="green"><!--Picture-->
+                            <!--GPS Location-->
                             <div class="command_lists">
-                                <h3>This device has a camera. Request picture</h3>
-                                <img  class="thumb" src="/static/zoid1.png"/>
-                            </div>
-
-                            <hr class="aqua"><!--Command List-->
-                            <div class="command_lists">
-                                <button type="button" class="btn btn-primary" ng-click="update_Path()">Take a picture</button>
-                            </div>
-
+                                <h3>This device is currently
+                                    <h2 style="color: lightgreen">live</h2>
+                                    <h3>at:</h3>
+                                    <h4><strong>{{address}}</strong></h4>
+                                </h3>
+                                <hr />
+                                <iframe width="600" height="450" frameborder="0" style="border:0"
+                                src="https://www.google.com/maps/embed/v1/place?q=40.4277679%2C-86.9166568&key=AIzaSyALv4ybg4f1tID8FpBJp_DAGNirGVfOkQs" allowfullscreen></iframe>
                         </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-primary" ng-click="showDevice=false">Exit</button>
+
+                        <hr class="green"><!--Picture-->
+                        <div class="command_lists">
+                            <h3>This device has a camera. Request picture</h3>
+                            <img  class="thumb" src="/static/zoid1.png"/>
                         </div>
+
+                        <hr class="aqua"><!--Command List-->
+                        <div class="command_lists">
+                            <button type="button" class="btn btn-primary" ng-click="update_Path()">Take a picture</button>
+                        </div>
+
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" ng-click="showDevice=false">Exit</button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+</div>
 </div>
 <hr />
 <div ng-controller="logoutController">
