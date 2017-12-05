@@ -112,14 +112,14 @@ def activate_user(devid, user):
     #username = (user.split("@")[0]).replace(".","_")
     #output = conn.execute("SELECT \'"+username+"\', id FROM users;").fetchall()
     #value = output[0][1]
-    print("  ACTIVATING USER: "+user+" "+devid)
+    print("  ACTIVATING USER: "+user+" "+str(devid))
     output = conn.execute("SELECT locked FROM active_users WHERE uid="+user+" AND devid="+devid+";").fetchall()
     for value in output:
-        outss = conn.execute("SELECT devid, uid FROM shares WHERE devid="+devid+";").fetchall()
+        outss = conn.execute("SELECT devid, uid FROM shares WHERE devid="+str(devid)+";").fetchall()
         if(value[0] == 0): #unlocked
             print('set 1')
             for vals in outss:
-                conn.execute("UPDATE active_users SET locked=1 WHERE uid="+vals[1]+" AND devid="+devid+";")
+                conn.execute("UPDATE active_users SET locked=1 WHERE uid="+str(vals[1])+" AND devid="+str(devid)+";")
         else: #locked
             print('set to 0')
             #check that other user that can access are active
@@ -131,9 +131,9 @@ def activate_user(devid, user):
                     return jsonify({'status': value})
             #everyone is active. Time to connect. Unlock!
             for vals in output:
-                conn.execute("UPDATE active_users SET locked=0 WHERE uid="+vals[1]+" AND devid="+devid+";")
+                conn.execute("UPDATE active_users SET locked=0 WHERE uid="+str(vals[1])+" AND devid="+str(devid)+";")
     if(len(output) == 0):
-        conn.execute("INSERT INTO active_users (uid,devid,locked) VALUES ("+user+","+devid+", 1);")
+        conn.execute("INSERT INTO active_users (uid,devid,locked) VALUES ("+user+","+str(devid)+", 1);")
     value = True
     return jsonify({'status': value})
 
