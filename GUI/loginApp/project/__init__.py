@@ -8,7 +8,7 @@ from sqlalchemy import inspect, create_engine
 from sqlalchemy.ext.declarative import declarative_base
 
 # config
-
+num = 100
 app = Flask(__name__, template_folder='./static')
 app.config['SECRET_KEY'] = "hello"
 filename = 'firebase.txt'
@@ -127,8 +127,10 @@ def activate_user(devid, user):
                 #check that active the userId
                 new11 = conn.execute("SELECT uid FROM active_users WHERE uid="+str(vals[1])+";").fetchall();
                 if(len(new11) <= 0): #not in active_user
-                    value = False
-                    return jsonify({'status': value})
+                    value = -1
+                    missed = conn.execute("SELECT name FROM user WHERE id="+str(vals[1])+";").fetchall();
+                    return jsonify({'status': value, 'others':missed[0]})
+            print("UNLOCKINGGGG")
             #everyone is active. Time to connect. Unlock!
             for vals in output:
                 conn.execute("UPDATE active_users SET locked=0 WHERE uid="+str(vals[1])+" AND devid="+str(devid)+";")
@@ -206,7 +208,8 @@ def registerUser(user):
     print("Adding to Auth")
     conn.execute("INSERT INTO auth_users (username,passwords) VALUES ( \'"+username+"\',\'"+passsalt+"\');")
     print("Adding to UserId")
-    userId = random(1,10000);
+    userId = num;
+    num += 1
     conn.execute("INSERT INTO users (id, name) VALUES (\'"+userId+"\',\'"+username+"\');")
 def validate(user):
     #TODO check the DB for Username and Password

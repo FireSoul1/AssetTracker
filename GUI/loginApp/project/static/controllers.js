@@ -44,7 +44,7 @@ angular.module('myApp').controller('loginController',
 function ($scope, $location, AuthService) {
 
     $scope.login = function () {
-	console.log('loggin in')
+        console.log('loggin in')
         // initial values
         $scope.error = false;
         $scope.disabled = true;
@@ -91,16 +91,16 @@ function ($scope, $location, AuthService) {
 /*angular.module('myApp').controller('MyCtrl',
 ['$scope', '$location', '$$window', 'ngMap'
 function(NgMap){
-    var vm = this;
-    NgMap.getMap().then(function(map) {
-        vm.showCustomMarker= function(evt) {
-            map.customMarkers.foo.setVisible(true);
-            map.customMarkers.foo.setPosition(this.getPosition());
-        };
-        vm.closeCustomMarker= function(evt) {
-            this.style.display = 'none';
-        };
-    });
+var vm = this;
+NgMap.getMap().then(function(map) {
+vm.showCustomMarker= function(evt) {
+map.customMarkers.foo.setVisible(true);
+map.customMarkers.foo.setPosition(this.getPosition());
+};
+vm.closeCustomMarker= function(evt) {
+this.style.display = 'none';
+};
+});
 });*/
 
 angular.module('myApp').controller('registerController',
@@ -156,7 +156,7 @@ function ($scope, $location, AuthService) {
         $scope.address = "This is the Address... NOT"
 
         //get devices for a User
-	       console.log('scope.user: ' + $scope.user);
+        console.log('scope.user: ' + $scope.user);
         $http.get('/api/'+$scope.user+'/get_devices').then(function(response) {
             $scope.devices = response.data.devices;
             $scope.userID = response.data.userid
@@ -178,43 +178,57 @@ function ($scope, $location, AuthService) {
 
         //get selected device
         $scope.select_device = function(value) {
-            $scope.selectedDevice = value;
-            $scope.showDevice = !$scope.showDevice
-            //get GPS location
-            $http.get('/'+value+'/location').then(function(response) {
-                $scope.gpsloc[0] = response.data.Xloc;
-                $scope.gpsloc[1] = response.data.Yloc;
-                console.log("GPS Done!")
-                console.log('hello')
-                //get the address
-                lat = $scope.gpsloc[0];
-                lng = $scope.gpsloc[1];
-                url = 'http://api.geonames.org/findNearestAddress?lat='+lat+'&lng='+lng+'&username=gkondapa';
-                $http.get(url).then(function(response) {
-                        if(response.data != null) {
-                            console.log("Datata "+response.data);
-                            var tmp = response.data+"";
-                            var parser = new DOMParser();
-                            var dom = parser.parseFromString(tmp, "text/xml")
-                            var jsoned = xmlToJson(dom);
-                            console.log("Json: "+JSON.stringify(jsoned));
-                             var start = jsoned.geonames.address
-                             var addr = start.streetNumber['#text']+" "+start.street['#text']+", "+
-                                 start.placename['#text']+", "+start.adminCode1['#text']+", "+
-                                 start.countryCode['#text']+" "+start.postalcode['#text']
-                             $scope.address = addr;
-                        }
-
-
-                        console.log($scope.address);
-                }, function error(_error) {
-                        console.log('error: ' + error);
-                });
-            });
-
             //TODO send Http request to update active user with device Id
             $http.get('/'+value+'/'+$scope.userID+'/active').then(function(response) {
-                console.log("Done!")
+                console.log("Done! "+response.data.status)
+                if(response.data.status == -1) {
+                    alert("Device is locked! Contact the other users: "+response.data.others);
+                    console.log("errorrrr")
+                }
+                else {
+                    $scope.selectedDevice = value;
+                    $scope.showDevice = !$scope.showDevice
+
+                    //get GPS location
+                    $http.get('/'+value+'/location').then(function(response) {
+                        $scope.gpsloc[0] = response.data.Xloc;
+                        $scope.gpsloc[1] = response.data.Yloc;
+                        console.log("GPS Done!")
+                        console.log('hello')
+                        //get the address
+                        lat = $scope.gpsloc[0];
+                        lng = $scope.gpsloc[1];
+                        url = 'http://api.geonames.org/findNearestAddress?lat='+lat+'&lng='+lng+'&username=gkondapa';
+                        $http.get(url).then(function(response) {
+                            if(response.data != null) {
+                        //        console.log("Datata "+response.data);
+                                var tmp = response.data+"";
+                                var parser = new DOMParser();
+                                var dom = parser.parseFromString(tmp, "text/xml")
+                                var jsoned = xmlToJson(dom);
+                        //        console.log("Json: "+JSON.stringify(jsoned));
+                                var start = jsoned.geonames.address
+                                var addr = start.streetNumber['#text']+" "+start.street['#text']+", "+
+                                start.placename['#text']+", "+start.adminCode1['#text']+", "+
+                                start.countryCode['#text']+" "+start.postalcode['#text']
+                                $scope.address = addr;
+                            }
+
+
+                            console.log($scope.address);
+                        }, function error(_error) {
+                            console.log('error: ' + error);
+                        });
+                    });
+
+                }
+
+            });
+        }
+
+        $scope.get_picture = function() {
+            $http.get("/"+$scope.selectedDevice+"/picture").then(function(response) {
+                $scope.image_src = response.data.picpath
             });
         }
     }]);

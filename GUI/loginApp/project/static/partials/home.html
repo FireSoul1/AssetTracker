@@ -48,9 +48,9 @@
                         </div>
 
                         <hr class="green"><!--Picture-->
-                        <div class="command_lists">
+                        <div class="command_lists" ng-init="image_src='/static/zoid1.png'">
                             <h3>This device has a camera. Request picture</h3>
-                            <img  class="thumb" src="/static/zoid1.png"/>
+                            <img  class="thumb" ng-src="{{image_src}}"/>
                         </div>
 
                         <hr class="aqua"><!--Command List-->
