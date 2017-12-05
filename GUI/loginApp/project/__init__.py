@@ -128,8 +128,9 @@ def activate_user(devid, user):
                 new11 = conn.execute("SELECT uid FROM active_users WHERE uid="+str(vals[1])+";").fetchall();
                 if(len(new11) <= 0): #not in active_user
                     value = -1
-                    missed = conn.execute("SELECT name FROM user WHERE id="+str(vals[1])+";").fetchall();
-                    return jsonify({'status': value, 'others':missed[0]})
+                    missed = conn.execute("SELECT name FROM users WHERE id="+str(vals[1])+";").fetchall();
+                    valR  = missed[0][0]
+                    return jsonify({'status': value, 'others': valR})
             print("UNLOCKINGGGG")
             #everyone is active. Time to connect. Unlock!
             for vals in output:
