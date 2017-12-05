@@ -78,13 +78,12 @@ def logout():
     session.pop('logged_in', None)
     return jsonify({'result': 'success'})
 
-
 @app.route('/api/status')
 def status():
     print(request)
     if session.get('logged_in'):
         if session['logged_in']:
-            print('session: True') 
+            print('session: True')
             return jsonify({'status': True})
     else:
         print('session: False')
@@ -106,6 +105,7 @@ def get_picture(devid):
     output = conn.execute("SELECT \'"+devid+"\', picpath FROM images;").fetchall()
     value = output[0][1]
     return jsonify({'picpath': value})
+
 @app.route('/<devid>/<user>/active')
 def activate_user(devid, user):
     #insert the device to table
@@ -115,13 +115,23 @@ def activate_user(devid, user):
     print("  ACTIVATING USER: "+user+" "+devid)
     output = conn.execute("SELECT locked FROM active_users WHERE uid="+user+" AND devid="+devid+";").fetchall()
     for value in output:
-        if(value[0] == 0): #locked
-            print('1')
-            #  conn.execute("DELETE active_users SET locked=1 WHERE uid="+user+" AND devid="+devid+";")
-            conn.execute("UPDATE active_users SET locked=1 WHERE uid="+user+" AND devid="+devid+";")
-        else:
-            print('0')
-            conn.execute("UPDATE active_users SET locked=0 WHERE uid="+user+" AND devid="+devid+";")
+        outss = conn.execute("SELECT devid, uid FROM shares WHERE devid="+devid+";").fetchall()
+        if(value[0] == 0): #unlocked
+            print('set 1')
+            for vals in outss:
+                conn.execute("UPDATE active_users SET locked=1 WHERE uid="+vals[1]+" AND devid="+devid+";")
+        else: #locked
+            print('set to 0')
+            #check that other user that can access are active
+            for vals in outss:
+                #check that active the userId
+                new11 = conn.execute("SELECT uid FROM active_users WHERE uid="+str(vals[1])+";").fetchall();
+                if(len(new11) <= 0): #not in active_user
+                    value = False
+                    return jsonify({'status': value})
+            #everyone is active. Time to connect. Unlock!
+            for vals in output:
+                conn.execute("UPDATE active_users SET locked=0 WHERE uid="+vals[1]+" AND devid="+devid+";")
     if(len(output) == 0):
         conn.execute("INSERT INTO active_users (uid,devid,locked) VALUES ("+user+","+devid+", 1);")
     value = True
