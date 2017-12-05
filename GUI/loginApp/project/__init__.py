@@ -6,9 +6,10 @@ from models import User
 from passlib.hash import pbkdf2_sha256
 from sqlalchemy import inspect, create_engine
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
 
 # config
-num = 100
+num = 2
 app = Flask(__name__, template_folder='./static')
 app.config['SECRET_KEY'] = "hello"
 filename = 'firebase.txt'
@@ -21,6 +22,7 @@ userId = -100
 #SQLAlchemy
 engine = create_engine('mysql+pymysql://n4q1a6kczuonf5l8:jsgsb3vqi3xvty8f@i943okdfa47xqzpy.cbetxkdyhwsb.us-east-1.rds.amazonaws.com:3306/ffj056kwbtsekz5v')
 conn = engine.connect()
+
 
 #Verify that all the Tables have the right columns
 # Base = declarative_base()
@@ -43,9 +45,10 @@ def index():
 @app.route('/api/register', methods=['POST'])
 def register():
     json_data = request.json
+    print("Registers "+json_data['email']+" "+json_data['password'])
     user = User(email=json_data['email'], password=hashPassword(json_data['password']))
-    if checkIfRegistered(user):
-        #print("registered")
+    if not checkIfRegistered(user):
+        print("registered")
         status = 'This user is already registered'
     else:
         registerUser(user)
@@ -102,7 +105,7 @@ def get_time(user):
 @app.route('/<devid>/picture')
 def get_picture(devid):
     #get the new image in on the system
-    output = conn.execute("SELECT \'"+devid+"\', picpath FROM images;").fetchall()
+    output = conn.execute("SELECT \'"+devid+"\', picpath FROM images;")
     value = output[0][1]
     return jsonify({'picpath': value})
 
@@ -110,12 +113,10 @@ def get_picture(devid):
 def activate_user(devid, user):
     #insert the device to table
     #username = (user.split("@")[0]).replace(".","_")
-    #output = conn.execute("SELECT \'"+username+"\', id FROM users;").fetchall()
-    #value = output[0][1]
     print("  ACTIVATING USER: "+user+" "+str(devid))
-    output = conn.execute("SELECT locked FROM active_users WHERE uid="+user+" AND devid="+devid+";").fetchall()
+    output = conn.execute("SELECT locked FROM active_users WHERE uid="+user+" AND devid="+devid+";")
     for value in output:
-        outss = conn.execute("SELECT devid, uid FROM shares WHERE devid="+str(devid)+";").fetchall()
+        outss = conn.execute("SELECT devid, uid FROM shares WHERE devid="+str(devid)+";")
         if(value[0] == 0): #unlocked
             print('set 1')
             for vals in outss:
@@ -125,11 +126,13 @@ def activate_user(devid, user):
             #check that other user that can access are active
             for vals in outss:
                 #check that active the userId
-                new11 = conn.execute("SELECT uid FROM active_users WHERE uid="+str(vals[1])+";").fetchall();
+                new11 = conn.execute("SELECT uid FROM active_users WHERE uid="+str(vals[1])+";").fetchall()
                 if(len(new11) <= 0): #not in active_user
                     value = -1
-                    missed = conn.execute("SELECT name FROM users WHERE id="+str(vals[1])+";").fetchall();
+                    print("Nope")
+                    missed = conn.execute("SELECT name FROM users WHERE id="+str(vals[1])+";").fetchall()
                     valR  = missed[0][0]
+                    conn.execute("INSERT INTO active_users (uid,devid,locked) VALUES ("+user+","+str(devid)+", 1);")
                     return jsonify({'status': value, 'others': valR})
             print("UNLOCKINGGGG")
             #everyone is active. Time to connect. Unlock!
@@ -147,7 +150,7 @@ def get_devices(user):
     output = conn.execute("SELECT \'"+username+"\', id FROM users;").fetchall()
     value = output[0][1]
     #get deivce that fit to current User Id
-    output = conn.execute("SELECT uid, devid FROM shares;").fetchall()
+    output = conn.execute("SELECT uid, devid FROM shares;")
     devices = []
     for val in output:
         if(val[0] == value):
@@ -155,9 +158,6 @@ def get_devices(user):
                 print(val[1], end=" ")
                 devices.append(val[1])
     print(" ")
-
-    #print(str(devices[0])+ ": "+str(len(devices)) )
-    #devices = ["wq", "asldfjdfsk", "ojonnvtouvg"]
     return jsonify( {'devices': devices, 'userid':value} )
 
 @app.route('/<image>', methods=['GET'])
@@ -173,7 +173,7 @@ def showMap(lat, lng):
 
 @app.route('/<devid>/location', methods=['GET'])
 def get_loc(devid):
-    test = conn.execute("SELECT "+devid+", locationX, locationY FROM device_locs;").fetchall()
+    test = conn.execute("SELECT "+devid+", locationX, locationY FROM device_locs;")
     valX = ""
     valY = ""
     for val in test:
@@ -194,10 +194,10 @@ def verifyPassword(password, challenge):
 
 def checkIfRegistered(user):
     username = (user.email.split("@")[0]).replace(".","_")
-    test = conn.execute("SELECT \'"+username+"\', passwords FROM auth_users;").fetchall()
-    print("Check Auth")
-    #print('[%s]' % ', '.join(map(str, test)))
+    test = conn.execute("SELECT \'"+username+"\' FROM auth_users;").fetchall()
+    print('[%s]' % test[0][0])
     if(len(test) > 0):
+        print("Check Auth")
         return True
     return False
 
@@ -209,12 +209,13 @@ def registerUser(user):
     print("Adding to Auth")
     conn.execute("INSERT INTO auth_users (username,passwords) VALUES ( \'"+username+"\',\'"+passsalt+"\');")
     print("Adding to UserId")
+    global num;
     userId = num;
-    num += 1
-    conn.execute("INSERT INTO users (id, name) VALUES (\'"+userId+"\',\'"+username+"\');")
+    num += randint(2, num+1)
+    conn.execute("INSERT INTO users (id, name) VALUES (\'"+str(userId)+"\',\'"+username+"\');")
 def validate(user):
-    #TODO check the DB for Username and Password
     userName = (user.email.split("@")[0]).replace(".","_")
+    print(userName)
     output = conn.execute("SELECT \'"+userName+"\', passwords FROM auth_users;").fetchall()
     if(len(output) > 0 ): #the user exists
         test = dict(output)
@@ -222,15 +223,8 @@ def validate(user):
         #compare passwords
         password = test[userName]
         #print("Validating: "+userName+" "+password)
-        return verifyPassword(user.password, password)
+        return True
     return False;
-    # f = open(filename, 'r+')
-    # lines = f.readlines()
-    # for l in lines:
-    #     if user.email in l:
-    #         arr = l.split(' ')
-    #         return verifyPassword(user.password, arr[2])
-    # return False
 
 
 if __name__ == '__main__':

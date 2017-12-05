@@ -180,8 +180,9 @@ function ($scope, $location, AuthService) {
         $scope.select_device = function(value) {
             //TODO send Http request to update active user with device Id
             $http.get('/'+value+'/'+$scope.userID+'/active').then(function(response) {
+
                 console.log("Done! "+response.data.status)
-                if(response.data.status == -1) {
+                if(response.data.status == -1 && !$scope.showDevice) {
                     alert("Device is locked! Contact the other users: "+response.data.others);
                     console.log("errorrrr")
                 }
@@ -189,8 +190,9 @@ function ($scope, $location, AuthService) {
                     $scope.selectedDevice = value;
                     $scope.showDevice = !$scope.showDevice
 
-                    //get GPS location
-                    $http.get('/'+value+'/location').then(function(response) {
+                    if($scope.showDevice ==  true)
+                        //get GPS location
+                        $http.get('/'+value+'/location').then(function(response) {
                         $scope.gpsloc[0] = response.data.Xloc;
                         $scope.gpsloc[1] = response.data.Yloc;
                         console.log("GPS Done!")
